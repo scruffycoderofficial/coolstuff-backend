@@ -1,0 +1,63 @@
+#!/usr/bin/env php
+<?php
+
+require_once __DIR__ . '/../vendor/autoload.php';
+
+use CoolStuff\Version;
+use Doctrine\DBAL\DriverManager;
+use Symfony\Component\Console\Application;
+use Doctrine\Migrations\DependencyFactory;
+use Doctrine\Migrations\Tools\Console\Command;
+use Doctrine\Migrations\Configuration\Configuration;
+use Doctrine\Migrations\Configuration\Connection\ExistingConnection;
+use Doctrine\Migrations\Configuration\Migration\ExistingConfiguration;
+use Doctrine\Migrations\Metadata\Storage\TableMetadataStorageConfiguration;
+
+try {
+
+    $connection = DriverManager::getConnection([
+        'url' => getenv('DB_DSN'),
+        'driver' => 'pdo_mysql',
+        'charset' => 'UTF8',
+    ]);
+
+    $configuration = new Configuration($connection);
+
+    $configuration->addMigrationsDirectory('CoolStuff\Support\Database\Migrations', __DIR__ . '/../src/Support/Database/Migrations');
+    $configuration->setAllOrNothing(true);
+    $configuration->setCheckDatabasePlatform(false);
+
+    $storageConfiguration = new TableMetadataStorageConfiguration();
+    $storageConfiguration->setTableName('migrations');
+
+    $configuration->setMetadataStorageConfiguration($storageConfiguration);
+
+    $dependencyFactory = DependencyFactory::fromConnection(
+        new ExistingConfiguration($configuration),
+        new ExistingConnection($connection)
+    );
+
+    $cli = new Application(getenv('APP_NAME'), Version::NUMBER);
+    $cli->setCatchExceptions(true);
+
+    $cli->addCommands(array(
+        new Command\CurrentCommand($dependencyFactory),
+        new Command\DiffCommand($dependencyFactory),
+        new Command\DumpSchemaCommand($dependencyFactory),
+        new Command\ExecuteCommand($dependencyFactory),
+        new Command\GenerateCommand($dependencyFactory),
+        new Command\LatestCommand($dependencyFactory),
+        new Command\ListCommand($dependencyFactory),
+        new Command\MigrateCommand($dependencyFactory),
+        new Command\RollupCommand($dependencyFactory),
+        new Command\StatusCommand($dependencyFactory),
+        new Command\SyncMetadataCommand($dependencyFactory),
+        new Command\UpToDateCommand($dependencyFactory),
+        new Command\VersionCommand($dependencyFactory),
+    ));
+
+    $cli->run();
+    ;
+} catch(Exception $e){
+    echo "Error: " . $e->getMessage();
+}

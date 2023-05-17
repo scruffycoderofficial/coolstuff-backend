@@ -1,3 +1,10 @@
-db/sqlite.db
-vendor/
 .idea/
+#frontend
+app/node_modules
+
+#backend
+api/db/sqlite.db
+api/vendor/
+api/.php-cs-fixer.cache
+api/.env
+api/.env.local

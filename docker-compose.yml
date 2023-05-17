@@ -1,0 +1,95 @@
+version: '3'
+
+services:
+
+  app:
+    container_name: coolstuff_app
+    build:
+      context: .
+      dockerfile: sys/node/Dockerfile
+    ports:
+      - "9600:80"
+    volumes:
+      - ./app:/var/www/html/app
+    links:
+      - api
+    networks:
+      racoon-coolstuff:
+        aliases:
+          - app
+
+  api-server:
+    image: nginx:alpine
+    container_name: coolstuff_bes
+    ports:
+      - "9200:80"
+      - "434:443"
+    volumes:
+      - ./api:/var/www
+      - ./sys/nginx:/etc/nginx/conf.d/
+    networks:
+      racoon-coolstuff:
+        aliases:
+          - api-server
+
+  api:
+    build:
+      context: .
+      dockerfile: sys/php/Dockerfile
+    image: digitalocean.com/php
+    container_name: coolstuff_api
+    environment:
+      APP_NAME: "Shopping List Items"
+      APP_DEBUG: "false"
+      DB_DSN: "mysql://developer:p@ssw0rd@mysql/coolstuff_db?serverVersion=8.0.32"
+      SERVICE_NAME: app
+      SERVICE_TAGS: dev
+    working_dir: /var/www
+    volumes:
+      - ./api:/var/www
+      - ./sys/php/local.ini:/usr/local/etc/php/conf.d/local.ini
+    networks:
+      racoon-coolstuff:
+        aliases:
+          - api
+
+  mysql:
+    image: mysql:8.0
+    container_name: coolstuff_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: p@ssw0rd
+      MYSQL_DATABASE: coolstuff_db
+      MYSQL_USER: developer
+      MYSQL_PASSWORD: p@ssw0rd
+    ports:
+      - "6033:3306"
+    volumes:
+      - storage:/var/lib/mysql
+    networks:
+      racoon-coolstuff:
+        aliases:
+          - mysql
+
+  phpmyadmin:
+    image: phpmyadmin:5.2.0
+    container_name: coolstuff_phpmyadmin
+    links:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+    ports:
+      - "8081:80"
+    networks:
+      racoon-coolstuff:
+        aliases:
+          - phpmyadmin
+
+networks:
+  racoon-coolstuff:
+    name: racoon-coolstuff
+    driver: bridge
+
+volumes:
+  storage:
+    driver: local

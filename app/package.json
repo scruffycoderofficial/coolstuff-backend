@@ -1,0 +1,20 @@
+{
+  "name": "coolstuff-frontend",
+  "version": "1.0.0",
+  "description": "RoomRacoon Assessment Project",
+  "author": "Luyanda Siko <sikoluyanda@gmail.com>",
+  "license": "MIT",
+  "keywords": [
+    "nodejs",
+    "laravel-mix"
+  ],
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "laravel-mix": "^6.0.49"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "jquery": "^3.6.4",
+    "sweetalert2": "^11.7.5"
+  }
+}

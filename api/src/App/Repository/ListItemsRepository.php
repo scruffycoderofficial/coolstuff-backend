@@ -67,7 +67,9 @@ final class ListItemsRepository implements ListItemsRepositoryInterface
                     ->setIsMarked($result['is_marked'] == '0' ? false : true));
             }
         } else {
-            $this->logger->info('No records were found from the database.');
+            if (!is_null($this->logger)) {
+                $this->logger->info('No records were found from the database.');
+            }
         }
 
         return $listItems;
